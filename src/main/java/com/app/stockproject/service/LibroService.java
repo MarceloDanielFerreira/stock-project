@@ -37,21 +37,31 @@ public class LibroService implements IService<LibroDto> {
         LibroBean libroBean = dtoToBean(libroDto);
 
         // Verifica si el autor existe o crea uno nuevo
-        Optional<AutorBean> autor = autorDao.findById(libroBean.getAutor().getId());
+        String autorNombre = libroDto.getAutorNombre();
+        Optional<AutorBean> autor = autorDao.findByNombre(autorNombre);
+
         if (autor.isEmpty()) {
-            // Utiliza libroBean para obtener el autor y guardarlo
-            libroBean.setAutor(autorDao.save(libroBean.getAutor()));
+            // Si el autor no existe, crea uno nuevo
+            AutorBean nuevoAutor = new AutorBean();
+            nuevoAutor.setNombre(autorNombre);
+            libroBean.setAutor(autorDao.save(nuevoAutor));
         } else {
+            // Si el autor existe, úsalo
             libroBean.setAutor(autor.get());
         }
 
         // Verifica si los géneros existen o crea nuevos
         List<GeneroLiterarioBean> generos = new ArrayList<>();
         for (GeneroLiterarioBean generoBean : libroBean.getGeneros()) {
-            Optional<GeneroLiterarioBean> existingGenero = generoLiterarioDao.findById(generoBean.getId());
+            String generoNombre = generoBean.getGenero();
+            Optional<GeneroLiterarioBean> existingGenero = generoLiterarioDao.findByGenero(generoNombre);
             if (existingGenero.isEmpty()) {
-                generos.add(generoLiterarioDao.save(generoBean));
+                // Si el género no existe, crea uno nuevo
+                GeneroLiterarioBean nuevoGenero = new GeneroLiterarioBean();
+                nuevoGenero.setGenero(generoNombre);
+                generos.add(generoLiterarioDao.save(nuevoGenero));
             } else {
+                // Si el género existe, úsalo
                 generos.add(existingGenero.get());
             }
         }
@@ -60,6 +70,7 @@ public class LibroService implements IService<LibroDto> {
         libroBean = libroDao.save(libroBean);
         return beanToDto(libroBean);
     }
+
 
 
     @Override
