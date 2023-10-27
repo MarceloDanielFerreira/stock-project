@@ -14,6 +14,7 @@ public class LibroDto extends AbstractDto{
     private double precio;
     private String sinopsis;
     private boolean activo;
+    private double iva;
     private String autorNombre;
     private List<String> generos;
 }

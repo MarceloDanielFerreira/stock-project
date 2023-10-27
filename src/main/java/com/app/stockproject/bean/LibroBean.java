@@ -3,11 +3,8 @@ package com.app.stockproject.bean;
 import com.app.stockproject.abstracts.AbstractBean;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSourceExtensionsKt;
-
 
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "libros")
@@ -26,6 +23,8 @@ public class LibroBean extends AbstractBean {
     @ManyToOne
     @JoinColumn(name = "autor_id")
     private AutorBean autor;
+    @Column
+    private double  iva;
 
     @ManyToMany
     @JoinTable(
