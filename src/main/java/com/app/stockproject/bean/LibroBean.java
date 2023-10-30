@@ -25,6 +25,8 @@ public class LibroBean extends AbstractBean {
     private AutorBean autor;
     @Column
     private double  iva;
+    @OneToOne(mappedBy = "libro")
+    private LibroDetalleBean libroDetalle;
 
     @ManyToMany
     @JoinTable(

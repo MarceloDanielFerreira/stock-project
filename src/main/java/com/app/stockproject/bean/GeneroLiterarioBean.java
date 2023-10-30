@@ -15,8 +15,6 @@ import java.util.List;
 public class GeneroLiterarioBean extends AbstractBean {
     @Column
     private String genero;
-    @Column
-    private String descripcion;
     @ManyToMany(mappedBy = "generos")
     private List<LibroBean> libros;
 }

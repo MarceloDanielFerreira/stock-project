@@ -4,6 +4,7 @@ import com.app.stockproject.abstracts.AbstractDto;
 import com.app.stockproject.bean.LibroBean;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,4 +18,7 @@ public class LibroDto extends AbstractDto{
     private double iva;
     private String autorNombre;
     private List<String> generos;
+    private Date fechaPublicacion;
+    private int numeroPaginas;
+    private String idioma;
 }

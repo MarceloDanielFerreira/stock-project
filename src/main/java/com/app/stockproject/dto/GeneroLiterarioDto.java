@@ -6,5 +6,4 @@ import lombok.Data;
 @Data
 public class GeneroLiterarioDto extends AbstractDto {
     private String genero;
-    private String descripcion;
 }

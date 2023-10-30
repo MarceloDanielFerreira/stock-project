@@ -62,10 +62,10 @@ public class LibroController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllLibros(Pageable pageable) {
+    @GetMapping("page/{page}")
+    public ResponseEntity<?> getAllLibros(@PathVariable int page) {
         try {
-            List<LibroDto> libros = libroService.getAll(pageable);
+            List<LibroDto> libros = libroService.getAll(page);
             if (!libros.isEmpty()) {
                 return ResponseEntity.ok(libros);
             } else {
@@ -79,6 +79,7 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al recuperar la lista de libros.");
         }
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateLibro(@PathVariable Long id, @RequestBody LibroDto libroDto) {
@@ -145,12 +146,14 @@ public class LibroController {
         }
     }
 
-    @GetMapping("/byAutor")
-    public ResponseEntity<?> getLibrosByAutor(@RequestParam String autorNombre) {
+    @GetMapping("/byAutor/{autorNombre}/page/{page}")
+    public ResponseEntity<?> getLibrosByAutor(@PathVariable String autorNombre, @PathVariable int page) {
+        // Resto del código
         try {
-            List<LibroDto> libros = libroService.getByAutor(autorNombre);
+            Page<LibroDto> librosPage = libroService.getByAutor(autorNombre, page);
 
-            if (!libros.isEmpty()) {
+            if (!librosPage.isEmpty()) {
+                List<LibroDto> libros = librosPage.getContent();
                 return ResponseEntity.ok(libros);
             } else {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No se encontraron libros por el autor proporcionado.");
@@ -166,6 +169,9 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al buscar libros por autor.");
         }
     }
+
+
+
 
     @PutMapping("/{id}/decrementar")
     public ResponseEntity<?> decrementarCantidad(@PathVariable Long id, @RequestParam int decrement) {

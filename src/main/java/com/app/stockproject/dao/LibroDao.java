@@ -10,8 +10,9 @@ import java.util.List;
 
 @Repository
 public interface LibroDao extends JpaRepository<LibroBean, Long> {
-    // Puedes agregar métodos de consulta personalizados aquí si es necesario
+
     Page<LibroBean> findByTitulo(String titulo, Pageable pageable);
-    List<LibroBean> findByAutorNombre(String autorNombre);
+    Page<LibroBean> findByAutorNombre(String autorNombre, Pageable pageable);
+
     Page<LibroBean> findByActivoTrue(Pageable pageable);
 }

@@ -1,244 +1,290 @@
-package com.app.stockproject.service;
+    package com.app.stockproject.service;
 
-import com.app.stockproject.bean.AutorBean;
-import com.app.stockproject.bean.GeneroLiterarioBean;
-import com.app.stockproject.bean.LibroBean;
-import com.app.stockproject.dao.AutorDao;
-import com.app.stockproject.dao.GeneroLiterarioDao;
-import com.app.stockproject.dao.LibroDao;
-import com.app.stockproject.dto.LibroDto;
-import com.app.stockproject.interfaces.IService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Service;
+    import com.app.stockproject.bean.AutorBean;
+    import com.app.stockproject.bean.GeneroLiterarioBean;
+    import com.app.stockproject.bean.LibroBean;
+    import com.app.stockproject.bean.LibroDetalleBean;
+    import com.app.stockproject.dao.AutorDao;
+    import com.app.stockproject.dao.GeneroLiterarioDao;
+    import com.app.stockproject.dao.LibroDao;
+    import com.app.stockproject.dao.LibroDetalleDao;
+    import com.app.stockproject.dto.LibroDetalleDto;
+    import com.app.stockproject.dto.LibroDto;
+    import com.app.stockproject.interfaces.IService;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.data.domain.Page;
+    import org.springframework.data.domain.PageRequest;
+    import org.springframework.stereotype.Service;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
+    import org.springframework.data.domain.Pageable;
+    import org.springframework.transaction.annotation.Transactional;
+    import com.app.stockproject.utils.Setting;
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Optional;
+    import java.util.stream.Collectors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+    @Service
+    public class LibroService implements IService<LibroDto> {
 
-@Service
-public class LibroService implements IService<LibroDto> {
+        private final LibroDao libroDao;
+        private final AutorDao autorDao;
+        private final GeneroLiterarioDao generoLiterarioDao;
+        private final LibroDetalleDao libroDetalleDao;
 
-    private final LibroDao libroDao;
-    private final AutorDao autorDao;
-    private final GeneroLiterarioDao generoLiterarioDao;
-    @Autowired
-    public LibroService(LibroDao libroDao, AutorDao autorDao, GeneroLiterarioDao generoLiterarioDao) {
-        this.libroDao = libroDao;
-        this.autorDao = autorDao;
-        this.generoLiterarioDao = generoLiterarioDao;
-    }
-
-    @Override
-    public LibroDto create(LibroDto libroDto) {
-        LibroBean libroBean = dtoToBean(libroDto);
-
-        // Verifica si el autor existe o crea uno nuevo
-        String autorNombre = libroDto.getAutorNombre();
-        Optional<AutorBean> autor = autorDao.findByNombre(autorNombre);
-
-        if (autor.isEmpty()) {
-            // Si el autor no existe, crea uno nuevo
-            AutorBean nuevoAutor = new AutorBean();
-            nuevoAutor.setNombre(autorNombre);
-            libroBean.setAutor(autorDao.save(nuevoAutor));
-        } else {
-            // Si el autor existe, úsalo
-            libroBean.setAutor(autor.get());
+        @Autowired
+        public LibroService(LibroDao libroDao, AutorDao autorDao, GeneroLiterarioDao generoLiterarioDao, LibroDetalleDao libroDetalleDao) {
+            this.libroDao = libroDao;
+            this.autorDao = autorDao;
+            this.generoLiterarioDao = generoLiterarioDao;
+            this.libroDetalleDao = libroDetalleDao;
         }
 
-        // Verifica si los géneros existen o crea nuevos
-        List<GeneroLiterarioBean> generos = new ArrayList<>();
-        for (GeneroLiterarioBean generoBean : libroBean.getGeneros()) {
-            String generoNombre = generoBean.getGenero();
-            Optional<GeneroLiterarioBean> existingGenero = generoLiterarioDao.findByGenero(generoNombre);
-            if (existingGenero.isEmpty()) {
-                // Si el género no existe, crea uno nuevo
-                GeneroLiterarioBean nuevoGenero = new GeneroLiterarioBean();
-                nuevoGenero.setGenero(generoNombre);
-                generos.add(generoLiterarioDao.save(nuevoGenero));
+        public LibroDto create(LibroDto libroDto) {
+            // Crear el LibroBean a partir de LibroDto
+            LibroBean libroBean = dtoToBean(libroDto);
+
+            // Verifica si el autor existe o crea uno nuevo
+            String autorNombre = libroDto.getAutorNombre();
+            Optional<AutorBean> autor = autorDao.findByNombre(autorNombre);
+
+            if (autor.isEmpty()) {
+                // Si el autor no existe, crea uno nuevo
+                AutorBean nuevoAutor = new AutorBean();
+                nuevoAutor.setNombre(autorNombre);
+                libroBean.setAutor(autorDao.save(nuevoAutor));
             } else {
-                // Si el género existe, úsalo
-                generos.add(existingGenero.get());
+                // Si el autor existe, úsalo
+                libroBean.setAutor(autor.get());
             }
-        }
-        libroBean.setGeneros(generos);
 
-        libroBean = libroDao.save(libroBean);
-        return beanToDto(libroBean);
-    }
-
-
-
-    @Override
-    public LibroDto getById(Long id) {
-        Optional<LibroBean> libroBean = libroDao.findById(id);
-        return libroBean.map(this::beanToDto).orElse(null);
-    }
-
-    @Override
-    public List<LibroDto> getAll(Pageable pageable) {
-        Page<LibroBean> libroBeans = libroDao.findByActivoTrue(pageable);
-        return libroBeans.getContent().stream().map(this::beanToDto).collect(Collectors.toList());
-    }
-
-    @Override
-    public LibroDto update(Long id, LibroDto libroDto) {
-        Optional<LibroBean> existingLibroOptional = libroDao.findById(id);
-
-        if (existingLibroOptional.isPresent()) {
-            LibroBean existingLibro = existingLibroOptional.get();
-            LibroBean updatedLibro = dtoToBean(libroDto); // Utiliza el mapeador para convertir DTO a Bean
-
-            // Actualiza los campos del libro existente con los nuevos valores
-            existingLibro.setTitulo(updatedLibro.getTitulo());
-            existingLibro.setCantidad(updatedLibro.getCantidad());
-            existingLibro.setPrecio(updatedLibro.getPrecio());
-            existingLibro.setSinopsis(updatedLibro.getSinopsis());
-            existingLibro.setActivo(updatedLibro.isActivo());
-
-            // Actualiza el autor (asumiendo que tienes un nombre en el DTO)
-            AutorBean autorBean = existingLibro.getAutor();
-            autorBean.setNombre(libroDto.getAutorNombre());
-            existingLibro.setAutor(autorBean);
-
-            // Actualiza los géneros existentes
+            // Verifica si los géneros existen o crea nuevos
             List<GeneroLiterarioBean> generos = new ArrayList<>();
             for (String generoNombre : libroDto.getGeneros()) {
-                GeneroLiterarioBean generoBean = generoLiterarioDao.findByGenero(generoNombre).orElse(null);
-                if (generoBean != null) {
-                    generos.add(generoBean);
+                Optional<GeneroLiterarioBean> existingGenero = generoLiterarioDao.findByGenero(generoNombre);
+                if (existingGenero.isEmpty()) {
+                    // Si el género no existe, crea uno nuevo
+                    GeneroLiterarioBean nuevoGenero = new GeneroLiterarioBean();
+                    nuevoGenero.setGenero(generoNombre);
+                    generos.add(generoLiterarioDao.save(nuevoGenero));
+                } else {
+                    // Si el género existe, úsalo
+                    generos.add(existingGenero.get());
                 }
             }
-            existingLibro.setGeneros(generos);
+            libroBean.setGeneros(generos);
 
-            existingLibro = libroDao.save(existingLibro);
-            return beanToDto(existingLibro);
-        } else {
-            // Libro no encontrado, devuelve null o maneja el error según sea necesario
-            return null;
+            // Guardar el libro en la base de datos
+            libroBean = libroDao.save(libroBean);
+
+            // Crear el LibroDetalleBean a partir de LibroDto
+            LibroDetalleBean libroDetalleBean = new LibroDetalleBean();
+            libroDetalleBean.setFechaPublicacion(libroDto.getFechaPublicacion());
+            libroDetalleBean.setNumeroPaginas(libroDto.getNumeroPaginas());
+            libroDetalleBean.setIdioma(libroDto.getIdioma());
+            libroDetalleBean.setLibro(libroBean);
+
+            // Guardar el detalle del libro en la base de datos
+            libroDetalleBean = libroDetalleDao.save(libroDetalleBean);
+
+            // Asignar el detalle al libro
+            libroBean.setLibroDetalle(libroDetalleBean);
+
+            return beanToDto(libroBean);
         }
-    }
 
 
-    @Override
-    public boolean delete(Long id) {
-        Optional<LibroBean> libroOptional = libroDao.findById(id);
 
-        if (libroOptional.isPresent()) {
-            LibroBean libroToDelete = libroOptional.get();
 
-            // Verifica si el libro ya está marcado como inactivo
-            if (!libroToDelete.isActivo()) {
-                return false; // El libro ya está inactivo
-            }
 
-            // Marca el libro como inactivo
-            libroToDelete.setActivo(false);
-
-            // Guarda el libro actualizado con la bandera "activo" establecida en falso
-            libroToDelete = libroDao.save(libroToDelete);
-
-            return true; // Libro marcado como inactivo (eliminación lógica)
-        } else {
-            return false; // Libro no encontrado
+        @Override
+        public LibroDto getById(Long id) {
+            Optional<LibroBean> libroBean = libroDao.findById(id);
+            return libroBean.map(this::beanToDto).orElse(null);
         }
-    }
+
+        public List<LibroDto> getAll(int page) {
+            Pageable pageable = PageRequest.of(page, Setting.PAGE_SIZE); // Ajusta el tamaño de página según tus necesidades
+            Page<LibroBean> libroBeans = libroDao.findByActivoTrue(pageable);
+            return libroBeans.getContent().stream().map(this::beanToDto).collect(Collectors.toList());
+        }
 
 
+        @Override
+        public LibroDto update(Long id, LibroDto libroDto) {
+            Optional<LibroBean> existingLibroOptional = libroDao.findById(id);
 
-    private LibroDto beanToDto(LibroBean libroBean) {
-        LibroDto libroDto = new LibroDto();
+            if (existingLibroOptional.isPresent()) {
+                LibroBean existingLibro = existingLibroOptional.get();
 
-        libroDto.setId(libroBean.getId());
-        libroDto.setTitulo(libroBean.getTitulo());
-        libroDto.setCantidad(libroBean.getCantidad());
-        libroDto.setPrecio(libroBean.getPrecio());
-        libroDto.setSinopsis(libroBean.getSinopsis());
-        libroDto.setActivo(libroBean.isActivo());
-        libroDto.setIva(libroBean.getIva());
+                // Actualiza los campos principales del libro
+                existingLibro.setTitulo(libroDto.getTitulo());
+                existingLibro.setCantidad(libroDto.getCantidad());
+                existingLibro.setPrecio(libroDto.getPrecio());
+                existingLibro.setSinopsis(libroDto.getSinopsis());
+                existingLibro.setActivo(libroDto.isActivo());
 
-        // Map the autor name from the AutorBean
-        libroDto.setAutorNombre(libroBean.getAutor().getNombre());
+                // Actualiza el autor (asumiendo que tienes un nombre en el DTO)
+                AutorBean autorBean = existingLibro.getAutor();
+                autorBean.setNombre(libroDto.getAutorNombre());
+                existingLibro.setAutor(autorBean);
 
-        // Map generos to a list of strings
-        List<String> generos = libroBean.getGeneros().stream()
-                .map(GeneroLiterarioBean::getGenero)
-                .collect(Collectors.toList());
-        libroDto.setGeneros(generos);
+                // Actualiza los géneros existentes
+                List<GeneroLiterarioBean> generos = new ArrayList<>();
+                for (String generoNombre : libroDto.getGeneros()) {
+                    GeneroLiterarioBean generoBean = generoLiterarioDao.findByGenero(generoNombre).orElse(null);
+                    if (generoBean != null) {
+                        generos.add(generoBean);
+                    }
+                }
+                existingLibro.setGeneros(generos);
 
-        return libroDto;
-    }
+                // Actualiza el detalle del libro
+                LibroDetalleBean libroDetalle = existingLibro.getLibroDetalle();
+                if (libroDetalle != null) {
+                    libroDetalle.setFechaPublicacion(libroDto.getFechaPublicacion());
+                    libroDetalle.setNumeroPaginas(libroDto.getNumeroPaginas());
+                    libroDetalle.setIdioma(libroDto.getIdioma());
+                }
 
-    private LibroBean dtoToBean(LibroDto libroDto) {
-        LibroBean libroBean = new LibroBean();
-        libroBean.setTitulo(libroDto.getTitulo());
-        libroBean.setCantidad(libroDto.getCantidad());
-        libroBean.setPrecio(libroDto.getPrecio());
-        libroBean.setSinopsis(libroDto.getSinopsis());
-        libroBean.setActivo(libroDto.isActivo());
-        libroBean.setIva(libroDto.getIva());
-
-        // Assuming that the DTO contains the autorNombre and generos data
-        AutorBean autorBean = new AutorBean();
-        autorBean.setNombre(libroDto.getAutorNombre());
-        libroBean.setAutor(autorBean);
-
-        List<GeneroLiterarioBean> generos = libroDto.getGeneros().stream()
-                .map(genero -> {
-                    GeneroLiterarioBean generoBean = new GeneroLiterarioBean();
-                    generoBean.setGenero(genero);
-                    return generoBean;
-                })
-                .collect(Collectors.toList());
-        libroBean.setGeneros(generos);
-
-        return libroBean;
-    }
-    public Page<LibroDto> getByTitulo(String titulo, Pageable pageable) {
-        Page<LibroBean> libros = libroDao.findByTitulo(titulo, pageable);
-        return libros.map(this::beanToDto);
-    }
-    public List<LibroDto> getByAutor(String autorNombre) {
-        List<LibroBean> librosByAutor = libroDao.findByAutorNombre(autorNombre);
-        return librosByAutor.stream().map(this::beanToDto).collect(Collectors.toList());
-    }
-    @Transactional
-    public boolean decrementCantidad(Long id, int decrement) {
-        Optional<LibroBean> libroOptional = libroDao.findById(id);
-
-        if (libroOptional.isPresent()) {
-            LibroBean libro = libroOptional.get();
-            int nuevaCantidad = libro.getCantidad() - decrement;
-
-            if (nuevaCantidad >= 0) {
-                libro.setCantidad(nuevaCantidad);
-                libroDao.save(libro);
-                return true;
+                existingLibro = libroDao.save(existingLibro);
+                return beanToDto(existingLibro);
+            } else {
+                // Libro no encontrado, devuelve null o maneja el error según sea necesario
+                return null;
             }
         }
-        return false; // No se pudo decrementar la cantidad
-    }
 
-    @Transactional
-    public boolean incrementCantidad(Long id, int increment) {
-        if (increment >= 0) {
+
+        @Override
+        public boolean delete(Long id) {
+            Optional<LibroBean> libroOptional = libroDao.findById(id);
+
+            if (libroOptional.isPresent()) {
+                LibroBean libroToDelete = libroOptional.get();
+
+                // Verifica si el libro ya está marcado como inactivo
+                if (!libroToDelete.isActivo()) {
+                    return false; // El libro ya está inactivo
+                }
+
+                // Marca el libro como inactivo
+                libroToDelete.setActivo(false);
+
+                // Guarda el libro actualizado con la bandera "activo" establecida en falso
+                libroToDelete = libroDao.save(libroToDelete);
+
+                return true; // Libro marcado como inactivo (eliminación lógica)
+            } else {
+                return false; // Libro no encontrado
+            }
+        }
+
+
+
+        private LibroDto beanToDto(LibroBean libroBean) {
+            LibroDto libroDto = new LibroDto();
+            libroDto.setId(libroBean.getId());
+            libroDto.setTitulo(libroBean.getTitulo());
+            libroDto.setCantidad(libroBean.getCantidad());
+            libroDto.setPrecio(libroBean.getPrecio());
+            libroDto.setSinopsis(libroBean.getSinopsis());
+            libroDto.setActivo(libroBean.isActivo());
+            libroDto.setIva(libroBean.getIva());
+
+
+            // Map the autor name from the AutorBean
+            libroDto.setAutorNombre(libroBean.getAutor().getNombre());
+
+            // Map generos to a list of strings
+            List<String> generos = libroBean.getGeneros().stream()
+                    .map(GeneroLiterarioBean::getGenero)
+                    .collect(Collectors.toList());
+            libroDto.setGeneros(generos);
+            LibroDetalleBean libroDetalle =libroBean.getLibroDetalle();
+            libroDto.setFechaPublicacion(libroDetalle.getFechaPublicacion());
+            libroDto.setNumeroPaginas(libroDetalle.getNumeroPaginas());
+            libroDto.setIdioma(libroDetalle.getIdioma());
+
+            return libroDto;
+        }
+
+        private LibroBean dtoToBean(LibroDto libroDto) {
+            LibroBean libroBean = new LibroBean();
+            libroBean.setTitulo(libroDto.getTitulo());
+            libroBean.setCantidad(libroDto.getCantidad());
+            libroBean.setPrecio(libroDto.getPrecio());
+            libroBean.setSinopsis(libroDto.getSinopsis());
+            libroBean.setActivo(libroDto.isActivo());
+            libroBean.setIva(libroDto.getIva());
+
+            // Assuming that the DTO contains the autorNombre and generos data
+            AutorBean autorBean = new AutorBean();
+            autorBean.setNombre(libroDto.getAutorNombre());
+            libroBean.setAutor(autorBean);
+            LibroDetalleBean libroDetalleBean=new LibroDetalleBean();
+            libroDetalleBean.setFechaPublicacion(libroDto.getFechaPublicacion());
+            libroDetalleBean.setIdioma(libroDto.getIdioma());
+            libroDetalleBean.setNumeroPaginas(libroDto.getNumeroPaginas());
+
+            List<GeneroLiterarioBean> generos = libroDto.getGeneros().stream()
+                    .map(genero -> {
+                        GeneroLiterarioBean generoBean = new GeneroLiterarioBean();
+                        generoBean.setGenero(genero);
+                        return generoBean;
+                    })
+                    .collect(Collectors.toList());
+            libroBean.setGeneros(generos);
+
+            return libroBean;
+        }
+        public Page<LibroDto> getByTitulo(String titulo, Pageable pageable) {
+            Page<LibroBean> libros = libroDao.findByTitulo(titulo, pageable);
+            return libros.map(this::beanToDto);
+        }
+        public Page<LibroDto> getByAutor(String autorNombre, int page) {
+            int pageSize = 10;  // Ajusta el tamaño de página según tus necesidades
+            Pageable pageable = PageRequest.of(page, pageSize);
+            Page<LibroBean> librosPage = libroDao.findByAutorNombre(autorNombre, pageable);
+
+            // Convierte los LibroBean a LibroDto y crea una nueva página de LibroDto
+            Page<LibroDto> librosDtoPage = librosPage.map(this::beanToDto);
+
+            return librosDtoPage;
+        }
+
+        @Transactional
+        public boolean decrementCantidad(Long id, int decrement) {
             Optional<LibroBean> libroOptional = libroDao.findById(id);
 
             if (libroOptional.isPresent()) {
                 LibroBean libro = libroOptional.get();
-                int nuevaCantidad = libro.getCantidad() + increment;
-                libro.setCantidad(nuevaCantidad);
-                libroDao.save(libro);
-                return true;
+                int nuevaCantidad = libro.getCantidad() - decrement;
+
+                if (nuevaCantidad >= 0) {
+                    libro.setCantidad(nuevaCantidad);
+                    libroDao.save(libro);
+                    return true;
+                }
             }
+            return false; // No se pudo decrementar la cantidad
         }
-        return false; // No se pudo incrementar la cantidad
+
+        @Transactional
+        public boolean incrementCantidad(Long id, int increment) {
+            if (increment >= 0) {
+                Optional<LibroBean> libroOptional = libroDao.findById(id);
+
+                if (libroOptional.isPresent()) {
+                    LibroBean libro = libroOptional.get();
+                    int nuevaCantidad = libro.getCantidad() + increment;
+                    libro.setCantidad(nuevaCantidad);
+                    libroDao.save(libro);
+                    return true;
+                }
+            }
+            return false; // No se pudo incrementar la cantidad
+        }
+
+
     }
-
-
-}
