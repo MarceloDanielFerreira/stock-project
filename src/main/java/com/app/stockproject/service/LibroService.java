@@ -8,17 +8,19 @@
     import com.app.stockproject.dao.GeneroLiterarioDao;
     import com.app.stockproject.dao.LibroDao;
     import com.app.stockproject.dao.LibroDetalleDao;
-    import com.app.stockproject.dto.LibroDetalleDto;
     import com.app.stockproject.dto.LibroDto;
     import com.app.stockproject.interfaces.IService;
+    import com.app.stockproject.utils.Setting;
     import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.cache.annotation.CacheEvict;
+    import org.springframework.cache.annotation.CachePut;
+    import org.springframework.cache.annotation.Cacheable;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.PageRequest;
-    import org.springframework.stereotype.Service;
-
     import org.springframework.data.domain.Pageable;
+    import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Transactional;
-    import com.app.stockproject.utils.Setting;
+
     import java.util.ArrayList;
     import java.util.List;
     import java.util.Optional;
@@ -39,7 +41,7 @@
             this.generoLiterarioDao = generoLiterarioDao;
             this.libroDetalleDao = libroDetalleDao;
         }
-
+        @Transactional
         public LibroDto create(LibroDto libroDto) {
             // Crear el LibroBean a partir de LibroDto
             LibroBean libroBean = dtoToBean(libroDto);
@@ -96,13 +98,14 @@
 
 
 
-
+        @Cacheable(cacheNames = "api_libro", key = "#id" )
         @Override
         public LibroDto getById(Long id) {
             Optional<LibroBean> libroBean = libroDao.findById(id);
             return libroBean.map(this::beanToDto).orElse(null);
         }
 
+        @Cacheable(cacheNames = "api_libros" )
         public List<LibroDto> getAll(int page) {
             Pageable pageable = PageRequest.of(page, Setting.PAGE_SIZE); // Ajusta el tamaño de página según tus necesidades
             Page<LibroBean> libroBeans = libroDao.findByActivoTrue(pageable);
@@ -111,6 +114,8 @@
 
 
         @Override
+        @Transactional
+        @CachePut(cacheNames = "api_libro", key = "#id")
         public LibroDto update(Long id, LibroDto libroDto) {
             Optional<LibroBean> existingLibroOptional = libroDao.findById(id);
 
@@ -157,6 +162,8 @@
 
 
         @Override
+        @Transactional
+        @CacheEvict(value = "api_libro", key = "#id")
         public boolean delete(Long id) {
             Optional<LibroBean> libroOptional = libroDao.findById(id);
 
