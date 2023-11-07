@@ -1,15 +1,14 @@
 package com.app.stockproject.controller;
-
+import com.app.stockproject.dto.LibroConDetalleDto;
+import com.app.stockproject.dto.LibroDetalleDto;
 import com.app.stockproject.dto.LibroDto;
+import com.app.stockproject.service.LibroConDetalleService;
 import com.app.stockproject.service.LibroService;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,195 +16,189 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/libros")
 public class LibroController {
+    @Autowired
+    private LibroService libroService;
+    @Autowired
+    private LibroConDetalleService libroConDetalleService;
 
-    private final LibroService libroService;
-    private static final Logger logger = LoggerFactory.getLogger(LibroController.class);
+    private final Logger logger = LoggerFactory.getLogger(LibroController.class);
 
-
+    @Autowired
     public LibroController(LibroService libroService) {
         this.libroService = libroService;
     }
 
     @PostMapping
-    public ResponseEntity<?> createLibro(@RequestBody LibroDto libroDto) {
+    public ResponseEntity<LibroDto> createLibro(@RequestBody LibroDto libroDto) {
         try {
-            // Llamada al servicio para crear un libro
             LibroDto createdLibro = libroService.create(libroDto);
-            return ResponseEntity.ok(createdLibro);
-        } catch (HttpMessageNotReadableException ex) {
-            logger.error("Error de lectura del cuerpo de la solicitud.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error de lectura del cuerpo de la solicitud.");
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al crear el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al crear el libro.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdLibro);
+        } catch (Exception e) {
+            logger.error("Error al crear un libro", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getLibroById(@PathVariable Long id) {
+    public ResponseEntity<LibroDto> getLibro(@PathVariable Long id) {
         try {
-            LibroDto libro = libroService.getById(id);
-            if (libro != null) {
-                return ResponseEntity.ok(libro);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Libro no encontrado");
+            LibroDto libroDto = libroService.getById(id);
+            if (libroDto == null) {
+                return ResponseEntity.notFound().build();
             }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al buscar el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al buscar el libro.");
-        } catch (NumberFormatException ex) {
-            logger.error("ID de libro no válido. Debe ser un número válido.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID de libro no válido. Debe ser un número válido.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al buscar el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al buscar el libro.");
+            return ResponseEntity.ok(libroDto);
+        } catch (Exception e) {
+            logger.error("Error al obtener un libro por ID", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @GetMapping("page/{page}")
-    public ResponseEntity<?> getAllLibros(@PathVariable int page) {
+    @GetMapping("/page/{page}")
+    public ResponseEntity<List<LibroDto>> getAllLibros(@PathVariable int page) {
         try {
             List<LibroDto> libros = libroService.getAll(page);
-            if (!libros.isEmpty()) {
-                return ResponseEntity.ok(libros);
-            } else {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No se encontraron libros.");
-            }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al recuperar la lista de libros.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al recuperar la lista de libros.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al recuperar la lista de libros.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al recuperar la lista de libros.");
+            return ResponseEntity.ok(libros);
+        } catch (Exception e) {
+            logger.error("Error al obtener la lista de libros", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateLibro(@PathVariable Long id, @RequestBody LibroDto libroDto) {
+    public ResponseEntity<LibroDto> updateLibro(@PathVariable Long id, @RequestBody LibroDto libroDto) {
         try {
             LibroDto updatedLibro = libroService.update(id, libroDto);
-
-            if (updatedLibro != null) {
-                return ResponseEntity.ok(updatedLibro);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Libro no encontrado");
+            if (updatedLibro == null) {
+                return ResponseEntity.notFound().build();
             }
-        } catch (HttpMessageNotReadableException ex) {
-            logger.error("Error de lectura del cuerpo de la solicitud.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error de lectura del cuerpo de la solicitud.");
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al actualizar el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al actualizar el libro.");
-        } catch (NumberFormatException ex) {
-            logger.error("ID de libro no válido. Debe ser un número válido.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID de libro no válido. Debe ser un número válido.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al actualizar el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al actualizar el libro.");
+            return ResponseEntity.ok(updatedLibro);
+        } catch (Exception e) {
+            logger.error("Error al actualizar un libro", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteLibro(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteLibro(@PathVariable Long id) {
         try {
             boolean deleted = libroService.delete(id);
             if (deleted) {
-                return ResponseEntity.ok("El libro ha sido eliminado correctamente.");
+                return ResponseEntity.noContent().build();
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el libro con el ID proporcionado.");
+                return ResponseEntity.notFound().build();
             }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al eliminar el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al eliminar el libro.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al eliminar el libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al eliminar el libro.");
+        } catch (Exception e) {
+            logger.error("Error al eliminar un libro", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    @GetMapping("/search")
-    public ResponseEntity<?> searchByTitulo(@RequestParam String titulo, Pageable pageable) {
+    @PostMapping("/con-detalles")
+    public ResponseEntity<LibroConDetalleDto> createLibroConDetalles(@RequestBody LibroConDetalleDto libroConDetalleDto) {
         try {
-            Page<LibroDto> libros = libroService.getByTitulo(titulo, pageable);
-
-            if (libros != null && !libros.isEmpty()) {
-                return ResponseEntity.ok(libros);
-            } else {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No se encontraron libros con el título proporcionado.");
-            }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al buscar libros por título.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al buscar libros por título.");
-        } catch (IllegalArgumentException ex) {
-            logger.error("Parámetros de búsqueda no válidos.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Parámetros de búsqueda no válidos.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al buscar libros por título.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al buscar libros por título.");
+            LibroConDetalleDto createdLibroConDetalle = libroConDetalleService.createLibroConDetalles(libroConDetalleDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdLibroConDetalle);
+        } catch (Exception e) {
+            logger.error("Error al crear un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @GetMapping("/byAutor/{autorNombre}/page/{page}")
-    public ResponseEntity<?> getLibrosByAutor(@PathVariable String autorNombre, @PathVariable int page) {
-        // Resto del código
+    // Actualizar un Libro con Detalles
+    @PutMapping("/con-detalles/{id}")
+    public ResponseEntity<LibroConDetalleDto> updateLibroConDetalles(@PathVariable Long id, @RequestBody LibroConDetalleDto libroConDetalleDto) {
         try {
-            Page<LibroDto> librosPage = libroService.getByAutor(autorNombre, page);
-
-            if (!librosPage.isEmpty()) {
-                List<LibroDto> libros = librosPage.getContent();
-                return ResponseEntity.ok(libros);
-            } else {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No se encontraron libros por el autor proporcionado.");
+            LibroConDetalleDto updatedLibroConDetalle = libroConDetalleService.updateLibroConDetalles(id, libroConDetalleDto);
+            if (updatedLibroConDetalle == null) {
+                return ResponseEntity.notFound().build();
             }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al buscar libros por autor.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al buscar libros por autor.");
-        } catch (IllegalArgumentException ex) {
-            logger.error("Parámetros de búsqueda no válidos.", ex);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Parámetros de búsqueda no válidos.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al buscar libros por autor.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al buscar libros por autor.");
+            return ResponseEntity.ok(updatedLibroConDetalle);
+        } catch (Exception e) {
+            logger.error("Error al actualizar un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-
-
-
-    @PutMapping("/{id}/decrementar")
-    public ResponseEntity<?> decrementarCantidad(@PathVariable Long id, @RequestParam int decrement) {
+    // Eliminar lógicamente un Libro con Detalles
+    @DeleteMapping("/con-detalles/{id}")
+    public ResponseEntity<Void> deleteLibroConDetalles(@PathVariable Long id) {
         try {
-            boolean resultado = libroService.decrementCantidad(id, decrement);
-            if (resultado) {
-                return ResponseEntity.ok("Decremento exitoso");
+            boolean deleted = libroConDetalleService.deleteLibroConDetalles(id);
+            if (deleted) {
+                return ResponseEntity.noContent().build();
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al decrementar la cantidad del libro.");
+                return ResponseEntity.notFound().build();
             }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al decrementar la cantidad del libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al decrementar la cantidad del libro.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al decrementar la cantidad del libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al decrementar la cantidad del libro.");
+        } catch (Exception e) {
+            logger.error("Error al eliminar un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @PutMapping("/{id}/incrementar")
-    public ResponseEntity<?> incrementarCantidad(@PathVariable Long id, @RequestParam int increment) {
+    // Obtener un Libro con Detalles
+    @GetMapping("/con-detalles/{id}")
+    public ResponseEntity<LibroConDetalleDto> getLibroConDetalles(@PathVariable Long id) {
         try {
-            boolean resultado = libroService.incrementCantidad(id, increment);
-            if (resultado) {
-                return ResponseEntity.ok("Incremento exitoso");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al incrementar la cantidad del libro.");
+            LibroConDetalleDto libroConDetalleDto = libroConDetalleService.getLibroConDetalles(id);
+            if (libroConDetalleDto == null) {
+                return ResponseEntity.notFound().build();
             }
-        } catch (DataAccessException ex) {
-            logger.error("Error de base de datos al incrementar la cantidad del libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error de base de datos al incrementar la cantidad del libro.");
-        } catch (Exception ex) {
-            logger.error("Error inesperado al incrementar la cantidad del libro.", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al incrementar la cantidad del libro.");
+            return ResponseEntity.ok(libroConDetalleDto);
+        } catch (Exception e) {
+            logger.error("Error al obtener un libro con detalles por ID", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    // Obtener todos los Libros con Detalles
+    @GetMapping("/con-detalles/page/{page}")
+    public ResponseEntity<List<LibroConDetalleDto>> getAllLibrosConDetalles(@PathVariable int page) {
+        try {
+            List<LibroConDetalleDto> librosConDetalle = libroConDetalleService.getAllLibrosConDetalles(page);
+            return ResponseEntity.ok(librosConDetalle);
+        } catch (Exception e) {
+            logger.error("Error al obtener la lista de libros con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    @PostMapping("/con-detalles/{id}/add-detalles")
+    public ResponseEntity<LibroConDetalleDto> addDetallesToLibro(@PathVariable Long id, @RequestBody List<LibroDetalleDto> nuevosDetallesDto) {
+        try {
+            LibroConDetalleDto libroConDetalleDto = libroConDetalleService.addDetallesToLibro(id, nuevosDetallesDto);
+            if (libroConDetalleDto == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(libroConDetalleDto);
+        } catch (Exception e) {
+            logger.error("Error al agregar detalles a un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    @DeleteMapping("/con-detalles/{libroId}/delete-detalles")
+    public ResponseEntity<Void> deleteDetallesFromLibro(@PathVariable Long libroId, @RequestBody List<Long> detalleIds) {
+        try {
+            boolean deleted = libroConDetalleService.deleteDetallesFromLibro(libroId, detalleIds);
+            if (deleted) {
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error al eliminar detalles de un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @PutMapping("/con-detalles/{libroId}/update-detalles")
+    public ResponseEntity<LibroConDetalleDto> updateDetallesOfLibro(@PathVariable Long libroId, @RequestBody List<LibroDetalleDto> detallesDto) {
+        try {
+            LibroConDetalleDto libroConDetalleDto = libroConDetalleService.updateDetallesOfLibro(libroId, detallesDto);
+            if (libroConDetalleDto == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(libroConDetalleDto);
+        } catch (Exception e) {
+            logger.error("Error al modificar detalles de un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 }

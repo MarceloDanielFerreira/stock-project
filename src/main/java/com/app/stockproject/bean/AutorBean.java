@@ -14,6 +14,8 @@ import java.util.List;
 public class AutorBean extends AbstractBean {
     @Column
     private String nombre;
+    @Column
+    private boolean activo;
 
     @OneToMany(mappedBy = "autor")
     private List<LibroBean> libros;

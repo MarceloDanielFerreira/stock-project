@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class ControlarDeErrores implements ErrorController {
+public class ErroresController implements ErrorController {
 
     @RequestMapping("/error")
     public String handleError(HttpServletRequest request) {

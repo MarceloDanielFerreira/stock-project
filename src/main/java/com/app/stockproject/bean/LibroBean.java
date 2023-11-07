@@ -17,17 +17,14 @@ public class LibroBean extends AbstractBean {
     @Column
     private double precio;
     @Column
-    private String sinopsis;
-    @Column
     private boolean activo;
+    @Column
+    private double  iva;
+    @Column
+    private String sinopsis;
     @ManyToOne
     @JoinColumn(name = "autor_id")
     private AutorBean autor;
-    @Column
-    private double  iva;
-    @OneToOne(mappedBy = "libro")
-    private LibroDetalleBean libroDetalle;
-
     @ManyToMany
     @JoinTable(
             name = "libros_generos",

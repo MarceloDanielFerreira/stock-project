@@ -1,5 +1,6 @@
 package com.app.stockproject.dao;
 
+import com.app.stockproject.bean.GeneroLiterarioBean;
 import com.app.stockproject.bean.LibroBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,9 +11,7 @@ import java.util.List;
 
 @Repository
 public interface LibroDao extends JpaRepository<LibroBean, Long> {
+    List<LibroBean> findAllByActivoIsTrue(Pageable pageable);
 
-    Page<LibroBean> findByTitulo(String titulo, Pageable pageable);
-    Page<LibroBean> findByAutorNombre(String autorNombre, Pageable pageable);
 
-    Page<LibroBean> findByActivoTrue(Pageable pageable);
 }

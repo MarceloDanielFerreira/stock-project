@@ -10,5 +10,7 @@ public class LibroDetalleDto extends AbstractDto {
     private Date fechaPublicacion;
     private int numeroPaginas;
     private String idioma;
+    private Long libroID;
+    private boolean activo;
 
 }

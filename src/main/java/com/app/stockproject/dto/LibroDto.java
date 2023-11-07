@@ -16,9 +16,6 @@ public class LibroDto extends AbstractDto{
     private String sinopsis;
     private boolean activo;
     private double iva;
-    private String autorNombre;
-    private List<String> generos;
-    private Date fechaPublicacion;
-    private int numeroPaginas;
-    private String idioma;
+    private  Long autorId;
+    private List<Long> generosId;
 }
