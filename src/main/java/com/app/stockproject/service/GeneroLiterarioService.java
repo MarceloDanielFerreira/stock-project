@@ -121,6 +121,7 @@ public class GeneroLiterarioService implements IService<GeneroLiterarioDto> {
         }
     }
 
+
     private GeneroLiterarioDto beanToDto(GeneroLiterarioBean generoBean) {
         GeneroLiterarioDto generoDto = new GeneroLiterarioDto();
         generoDto.setId(generoBean.getId());

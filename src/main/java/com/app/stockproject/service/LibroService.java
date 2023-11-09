@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class LibroService implements IService<LibroDto> {
     private CacheManager cacheManager;
     private final Logger logger = LoggerFactory.getLogger(LibroService.class);
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED,readOnly = false)
     @Override
     public LibroDto create(LibroDto libroDto) {
         try {
@@ -54,7 +55,7 @@ public class LibroService implements IService<LibroDto> {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     @Cacheable(cacheNames = "sd::api_libros", key = "'libro_'+#id")
     @Override
     public LibroDto getById(Long id) {
@@ -70,7 +71,7 @@ public class LibroService implements IService<LibroDto> {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     @Override
     public List<LibroDto> getAll(int page) {
         Pageable pageable = PageRequest.of(page, Setting.PAGE_SIZE);
@@ -96,7 +97,7 @@ public class LibroService implements IService<LibroDto> {
 
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @CachePut(cacheNames = "sd::api_libros", key = "'libro_'+#id")
     @Override
     public LibroDto update(Long id, LibroDto libroDto) {
@@ -115,7 +116,7 @@ public class LibroService implements IService<LibroDto> {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @CacheEvict(cacheNames = "sd::api_libros", key = "'libro_'+#id")
     @Override
     public boolean delete(Long id) {

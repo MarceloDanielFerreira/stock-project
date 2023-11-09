@@ -17,6 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
     private CacheManager cacheManager;
     private final Logger logger = LoggerFactory.getLogger(LibroDetalleService.class);
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @Override
     public LibroDetalleDto create(LibroDetalleDto libroDetalleDto) {
         try {
@@ -44,7 +45,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     @Cacheable(cacheNames = "sd::api_libros_detalle", key = "'libroDetalle_'+#id")
     @Override
     public LibroDetalleDto getById(Long id) {
@@ -60,7 +61,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     @Override
     public List<LibroDetalleDto> getAll(int page) {
         try {
@@ -91,7 +92,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
     }
 
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @CachePut(cacheNames = "sd::api_libros_detalle", key = "'libroDetalle_'+#id")
     @Override
     public LibroDetalleDto update(Long id, LibroDetalleDto libroDetalleDto) {
@@ -110,7 +111,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @CacheEvict(cacheNames = "sd::api_libros_detalle", key = "'libroDetalle_'+#id")
     @Override
     public boolean delete(Long id) {
@@ -128,7 +129,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
             throw e;
         }
     }
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     public LibroDetalleDto createOrUpdateDetalle(LibroDetalleDto libroDetalleDto) {
         try {
             LibroDetalleBean libroDetalleBean = dtoToBean(libroDetalleDto);
@@ -146,7 +147,7 @@ public class LibroDetalleService implements IService<LibroDetalleDto> {
             throw e;
         }
     }
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public List<LibroDetalleDto> getAllByLibroId(Long libroId) {
         try {
             List<LibroDetalleBean> libroDetalles = libroDetalleDao.findAllByLibro_IdAndActivoIsTrue(libroId);
