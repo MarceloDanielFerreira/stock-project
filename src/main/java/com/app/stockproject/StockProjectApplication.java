@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @SpringBootApplication
 @EnableCaching
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
         @ComponentScan(basePackages = {"main.java.com.app.stockproject.utils"})
 
 })*/
-
+@EnableWebSecurity
 public class StockProjectApplication {
 
     public static void main(String[] args) {
