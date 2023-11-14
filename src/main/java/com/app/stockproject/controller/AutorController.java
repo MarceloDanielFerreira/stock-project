@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class AutorController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<AutorDto> createAutor(@RequestBody AutorDto autorDto) {
         try {
             AutorDto createdAutor = autorService.create(autorDto);
@@ -34,6 +36,7 @@ public class AutorController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<AutorDto> getAutor(@PathVariable Long id) {
         try {
             AutorDto autorDto = autorService.getById(id);
@@ -48,6 +51,7 @@ public class AutorController {
     }
 
     @GetMapping("/page/{page}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<AutorDto>> getAllAutores(@PathVariable int page) {
         try {
             List<AutorDto> autores = autorService.getAll(page);
@@ -59,6 +63,7 @@ public class AutorController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<AutorDto> updateAutor(@PathVariable Long id, @RequestBody AutorDto autorDto) {
         try {
             AutorDto updatedAutor = autorService.update(id, autorDto);
@@ -73,6 +78,7 @@ public class AutorController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAutor(@PathVariable Long id) {
         try {
             boolean deleted = autorService.delete(id);

@@ -5,6 +5,7 @@ import com.app.stockproject.service.GeneroLiterarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class GeneroLiterarioController {
         this.generoLiterarioService = generoLiterarioService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<GeneroLiterarioDto> createGenero(@RequestBody GeneroLiterarioDto generoDto) {
         try {
@@ -30,6 +32,7 @@ public class GeneroLiterarioController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<GeneroLiterarioDto> getGenero(@PathVariable Long id) {
         try {
             GeneroLiterarioDto generoDto = generoLiterarioService.getById(id);
@@ -43,6 +46,7 @@ public class GeneroLiterarioController {
     }
 
     @GetMapping("/page/{page}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<GeneroLiterarioDto>> getAllGeneros(@PathVariable int page) {
         try {
             List<GeneroLiterarioDto> generos = generoLiterarioService.getAll(page);
@@ -53,6 +57,7 @@ public class GeneroLiterarioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<GeneroLiterarioDto> updateGenero(@PathVariable Long id, @RequestBody GeneroLiterarioDto generoDto) {
         try {
             GeneroLiterarioDto updatedGenero = generoLiterarioService.update(id, generoDto);
@@ -66,6 +71,7 @@ public class GeneroLiterarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteGenero(@PathVariable Long id) {
         try {
             boolean deleted = generoLiterarioService.delete(id);

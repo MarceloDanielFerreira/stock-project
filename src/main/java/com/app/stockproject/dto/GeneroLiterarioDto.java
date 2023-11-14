@@ -9,4 +9,5 @@ import java.util.List;
 public class GeneroLiterarioDto extends AbstractDto {
     private String genero;
     private boolean activo;
+    private Long id;
 }

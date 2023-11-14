@@ -28,6 +28,7 @@ public class User extends AbstractBean implements UserDetails {
     private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
+    private boolean activo;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

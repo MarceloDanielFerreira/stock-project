@@ -18,8 +18,7 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("$jwt.secret")
-    private  String SECRET_KEY;
+    private  String SECRET_KEY="asdfpoiquwefzxcvnqwieurpio1u234iu25821uwhqweporiuworu218412532457235098xlvjzxoivuspos";
 
     public boolean isTokenValid(String token, UserDetails userDetails){
         final String username=extractUserName(token);
@@ -50,7 +49,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+ 1000*60*24) )
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -68,12 +67,8 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        try {
-            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error al crear la clave HMAC", e);
-        }
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
 

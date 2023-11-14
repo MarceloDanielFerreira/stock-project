@@ -1,4 +1,5 @@
 package com.app.stockproject.controller;
+
 import com.app.stockproject.dto.LibroConDetalleDto;
 import com.app.stockproject.dto.LibroDetalleDto;
 import com.app.stockproject.dto.LibroDto;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class LibroController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LibroDto> createLibro(@RequestBody LibroDto libroDto) {
         try {
             LibroDto createdLibro = libroService.create(libroDto);
@@ -40,6 +43,7 @@ public class LibroController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<LibroDto> getLibro(@PathVariable Long id) {
         try {
             LibroDto libroDto = libroService.getById(id);
@@ -54,6 +58,7 @@ public class LibroController {
     }
 
     @GetMapping("/page/{page}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<LibroDto>> getAllLibros(@PathVariable int page) {
         try {
             List<LibroDto> libros = libroService.getAll(page);
@@ -65,6 +70,7 @@ public class LibroController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<LibroDto> updateLibro(@PathVariable Long id, @RequestBody LibroDto libroDto) {
         try {
             LibroDto updatedLibro = libroService.update(id, libroDto);
@@ -79,6 +85,7 @@ public class LibroController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteLibro(@PathVariable Long id) {
         try {
             boolean deleted = libroService.delete(id);
@@ -92,7 +99,9 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @PostMapping("/con-detalles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LibroConDetalleDto> createLibroConDetalles(@RequestBody LibroConDetalleDto libroConDetalleDto) {
         try {
             LibroConDetalleDto createdLibroConDetalle = libroConDetalleService.createLibroConDetalles(libroConDetalleDto);
@@ -103,8 +112,8 @@ public class LibroController {
         }
     }
 
-    // Actualizar un Libro con Detalles
     @PutMapping("/con-detalles/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<LibroConDetalleDto> updateLibroConDetalles(@PathVariable Long id, @RequestBody LibroConDetalleDto libroConDetalleDto) {
         try {
             LibroConDetalleDto updatedLibroConDetalle = libroConDetalleService.updateLibroConDetalles(id, libroConDetalleDto);
@@ -118,8 +127,8 @@ public class LibroController {
         }
     }
 
-    // Eliminar lógicamente un Libro con Detalles
     @DeleteMapping("/con-detalles/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteLibroConDetalles(@PathVariable Long id) {
         try {
             boolean deleted = libroConDetalleService.deleteLibroConDetalles(id);
@@ -134,8 +143,8 @@ public class LibroController {
         }
     }
 
-    // Obtener un Libro con Detalles
     @GetMapping("/con-detalles/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<LibroConDetalleDto> getLibroConDetalles(@PathVariable Long id) {
         try {
             LibroConDetalleDto libroConDetalleDto = libroConDetalleService.getLibroConDetalles(id);
@@ -149,8 +158,8 @@ public class LibroController {
         }
     }
 
-    // Obtener todos los Libros con Detalles
     @GetMapping("/con-detalles/page/{page}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<LibroConDetalleDto>> getAllLibrosConDetalles(@PathVariable int page) {
         try {
             List<LibroConDetalleDto> librosConDetalle = libroConDetalleService.getAllLibrosConDetalles(page);
@@ -160,7 +169,9 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
     @PostMapping("/con-detalles/{id}/add-detalles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LibroConDetalleDto> addDetallesToLibro(@PathVariable Long id, @RequestBody List<LibroDetalleDto> nuevosDetallesDto) {
         try {
             LibroConDetalleDto libroConDetalleDto = libroConDetalleService.addDetallesToLibro(id, nuevosDetallesDto);
@@ -173,7 +184,9 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
     @DeleteMapping("/con-detalles/{libroId}/delete-detalles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteDetallesFromLibro(@PathVariable Long libroId, @RequestBody List<Long> detalleIds) {
         try {
             boolean deleted = libroConDetalleService.deleteDetallesFromLibro(libroId, detalleIds);
@@ -187,7 +200,9 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @PutMapping("/con-detalles/{libroId}/update-detalles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LibroConDetalleDto> updateDetallesOfLibro(@PathVariable Long libroId, @RequestBody List<LibroDetalleDto> detallesDto) {
         try {
             LibroConDetalleDto libroConDetalleDto = libroConDetalleService.updateDetallesOfLibro(libroId, detallesDto);
@@ -200,5 +215,4 @@ public class LibroController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
 }
