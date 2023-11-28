@@ -24,7 +24,7 @@ public class AutorController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<AutorDto> createAutor(@RequestBody AutorDto autorDto) {
         try {
             AutorDto createdAutor = autorService.create(autorDto);
@@ -36,7 +36,7 @@ public class AutorController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<AutorDto> getAutor(@PathVariable Long id) {
         try {
             AutorDto autorDto = autorService.getById(id);
@@ -51,19 +51,31 @@ public class AutorController {
     }
 
     @GetMapping("/page/{page}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<AutorDto>> getAllAutores(@PathVariable int page) {
         try {
             List<AutorDto> autores = autorService.getAll(page);
+
             return ResponseEntity.ok(autores);
         } catch (Exception e) {
             logger.error("Error al obtener la lista de autores", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    @GetMapping("/search/{nombre}/page/{page}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    public ResponseEntity<List<AutorDto>> searchAutoresByName(@PathVariable String nombre, @PathVariable int page) {
+        try {
+            List<AutorDto> autores = autorService.searchByName(nombre, page);
 
+            return ResponseEntity.ok(autores);
+        } catch (Exception e) {
+            logger.error("Error al realizar la búsqueda de autores por nombre", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<AutorDto> updateAutor(@PathVariable Long id, @RequestBody AutorDto autorDto) {
         try {
             AutorDto updatedAutor = autorService.update(id, autorDto);
@@ -78,7 +90,7 @@ public class AutorController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<Void> deleteAutor(@PathVariable Long id) {
         try {
             boolean deleted = autorService.delete(id);

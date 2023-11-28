@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface AutorDao extends JpaRepository<AutorBean, Long> {
     List<AutorBean> findByActivoTrue();
     List<AutorBean> findAllByActivoIsTrue(Pageable pageable);
+    List<AutorBean> findByNombreContainingAndActivoIsTrue(String nombre, Pageable pageable);
+
 
 
 }

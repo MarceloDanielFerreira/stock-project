@@ -31,7 +31,7 @@ public class LibroController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<LibroDto> createLibro(@RequestBody LibroDto libroDto) {
         try {
             LibroDto createdLibro = libroService.create(libroDto);
@@ -43,7 +43,7 @@ public class LibroController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LibroDto> getLibro(@PathVariable Long id) {
         try {
             LibroDto libroDto = libroService.getById(id);
@@ -58,7 +58,7 @@ public class LibroController {
     }
 
     @GetMapping("/page/{page}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<LibroDto>> getAllLibros(@PathVariable int page) {
         try {
             List<LibroDto> libros = libroService.getAll(page);
@@ -70,7 +70,7 @@ public class LibroController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LibroDto> updateLibro(@PathVariable Long id, @RequestBody LibroDto libroDto) {
         try {
             LibroDto updatedLibro = libroService.update(id, libroDto);
@@ -85,7 +85,7 @@ public class LibroController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<Void> deleteLibro(@PathVariable Long id) {
         try {
             boolean deleted = libroService.delete(id);
@@ -101,7 +101,7 @@ public class LibroController {
     }
 
     @PostMapping("/con-detalles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<LibroConDetalleDto> createLibroConDetalles(@RequestBody LibroConDetalleDto libroConDetalleDto) {
         try {
             LibroConDetalleDto createdLibroConDetalle = libroConDetalleService.createLibroConDetalles(libroConDetalleDto);
@@ -113,7 +113,7 @@ public class LibroController {
     }
 
     @PutMapping("/con-detalles/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LibroConDetalleDto> updateLibroConDetalles(@PathVariable Long id, @RequestBody LibroConDetalleDto libroConDetalleDto) {
         try {
             LibroConDetalleDto updatedLibroConDetalle = libroConDetalleService.updateLibroConDetalles(id, libroConDetalleDto);
@@ -128,7 +128,7 @@ public class LibroController {
     }
 
     @DeleteMapping("/con-detalles/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<Void> deleteLibroConDetalles(@PathVariable Long id) {
         try {
             boolean deleted = libroConDetalleService.deleteLibroConDetalles(id);
@@ -144,7 +144,7 @@ public class LibroController {
     }
 
     @GetMapping("/con-detalles/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LibroConDetalleDto> getLibroConDetalles(@PathVariable Long id) {
         try {
             LibroConDetalleDto libroConDetalleDto = libroConDetalleService.getLibroConDetalles(id);
@@ -159,7 +159,7 @@ public class LibroController {
     }
 
     @GetMapping("/con-detalles/page/{page}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<LibroConDetalleDto>> getAllLibrosConDetalles(@PathVariable int page) {
         try {
             List<LibroConDetalleDto> librosConDetalle = libroConDetalleService.getAllLibrosConDetalles(page);
@@ -171,7 +171,7 @@ public class LibroController {
     }
 
     @PostMapping("/con-detalles/{id}/add-detalles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<LibroConDetalleDto> addDetallesToLibro(@PathVariable Long id, @RequestBody List<LibroDetalleDto> nuevosDetallesDto) {
         try {
             LibroConDetalleDto libroConDetalleDto = libroConDetalleService.addDetallesToLibro(id, nuevosDetallesDto);
@@ -186,7 +186,7 @@ public class LibroController {
     }
 
     @DeleteMapping("/con-detalles/{libroId}/delete-detalles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<Void> deleteDetallesFromLibro(@PathVariable Long libroId, @RequestBody List<Long> detalleIds) {
         try {
             boolean deleted = libroConDetalleService.deleteDetallesFromLibro(libroId, detalleIds);
@@ -202,7 +202,7 @@ public class LibroController {
     }
 
     @PutMapping("/con-detalles/{libroId}/update-detalles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LibroConDetalleDto> updateDetallesOfLibro(@PathVariable Long libroId, @RequestBody List<LibroDetalleDto> detallesDto) {
         try {
             LibroConDetalleDto libroConDetalleDto = libroConDetalleService.updateDetallesOfLibro(libroId, detallesDto);
@@ -212,6 +212,17 @@ public class LibroController {
             return ResponseEntity.ok(libroConDetalleDto);
         } catch (Exception e) {
             logger.error("Error al modificar detalles de un libro con detalles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    @GetMapping("/bajo-stock")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    public ResponseEntity<List<LibroDto>> getLibrosConBajoStock() {
+        try {
+            List<LibroDto> librosConBajoStock = libroService.getAllLibrosConBajoStock();
+            return ResponseEntity.ok(librosConBajoStock);
+        } catch (Exception e) {
+            logger.error("Error al obtener la lista de libros con bajo stock", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

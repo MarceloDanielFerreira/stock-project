@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface GeneroLiterarioDao extends JpaRepository<GeneroLiterarioBean, Long> {
     List<GeneroLiterarioBean> findAllByActivoIsTrue(Pageable pageable);
 
+    List<GeneroLiterarioBean> findByGeneroContainingAndActivoIsTrue(String nombre, Pageable pageable);
 }

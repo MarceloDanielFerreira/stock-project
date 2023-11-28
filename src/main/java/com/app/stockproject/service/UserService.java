@@ -17,10 +17,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService  {
@@ -74,8 +76,32 @@ public class UserService  {
             throw e;
         }
     }
+    @Transactional
+    public List<UserDto> getAllAdminUsers() {
+        try {
+            List<User> adminUsers = userDao.findAllByRoleAndActivoIsTrue(Role.ADMIN);
 
+            // Cache each admin user manually in Redis
+            for (User adminUser : adminUsers) {
+                String cacheName = "sd::api_users";
+                String key = "user_" + adminUser.getId();
+                Cache cache = cacheManager.getCache(cacheName);
 
+                // Check if the user is already in the cache
+                Cache.ValueWrapper valueWrapper = cache.get(key);
+
+                if (valueWrapper == null) {
+                    // If not in the cache, cache it
+                    cache.put(key, entityToDto(adminUser));
+                }
+            }
+
+            return convertToDtoList(adminUsers);
+        } catch (Exception e) {
+            logger.error("Error getting all admin users", e);
+            throw e;
+        }
+    }
     @Transactional
     @CachePut(cacheNames = "sd::api_users", key = "'user_'+#id")
     public UserDto update(Long id, UserDto userDto) {

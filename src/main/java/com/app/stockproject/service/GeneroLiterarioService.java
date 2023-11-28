@@ -1,7 +1,9 @@
 package com.app.stockproject.service;
 
+import com.app.stockproject.bean.AutorBean;
 import com.app.stockproject.bean.GeneroLiterarioBean;
 import com.app.stockproject.dao.GeneroLiterarioDao;
+import com.app.stockproject.dto.AutorDto;
 import com.app.stockproject.dto.GeneroLiterarioDto;
 import com.app.stockproject.interfaces.IService;
 import com.app.stockproject.utils.Setting;
@@ -100,6 +102,12 @@ public class GeneroLiterarioService implements IService<GeneroLiterarioDto> {
             logger.error("Error al actualizar el género literario", e);
             throw e;
         }
+    }
+    @Transactional
+    public List<GeneroLiterarioDto> searchByGenero(String nombre, int page) {
+        Pageable pageable = PageRequest.of(page, Setting.PAGE_SIZE);
+        List<GeneroLiterarioBean> generosActivos = generoLiterarioDao.findByGeneroContainingAndActivoIsTrue(nombre, pageable);
+        return convertToDtoList(generosActivos);
     }
 
     @Transactional

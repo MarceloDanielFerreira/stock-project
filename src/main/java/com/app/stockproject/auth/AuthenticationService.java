@@ -37,6 +37,7 @@ public class AuthenticationService {
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(Role.USER)
+                    .activo(true)
                     .build();
             userDao.save(user);
             var jwtToken = jwtService.generateToken(user);
@@ -56,6 +57,7 @@ public class AuthenticationService {
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(Role.ADMIN)
+                    .activo(true)
                     .build();
             userDao.save(user);
             var jwtToken = jwtService.generateToken(user);
@@ -84,11 +86,10 @@ public class AuthenticationService {
                     .build();
         } catch (AuthenticationException e) {
             logger.error("Authentication failed for user: {}", request.getEmail(), e);
-            // Handle authentication failure, e.g., throw a custom exception or return an error response.
             throw new RuntimeException("Authentication failed");
         } catch (Exception e) {
             logger.error("Error occurred during user authentication", e);
-            // Handle other exceptions appropriately.
+            //
             throw new RuntimeException("Authentication failed");
         }
     }

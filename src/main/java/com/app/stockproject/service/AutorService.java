@@ -117,6 +117,12 @@ public class AutorService implements IService<AutorDto> {
             throw e;
         }
     }
+    @Transactional
+    public List<AutorDto> searchByName(String nombre, int page) {
+        Pageable pageable = PageRequest.of(page, Setting.PAGE_SIZE);
+        List<AutorBean> autoresActivos = autorDao.findByNombreContainingAndActivoIsTrue(nombre, pageable);
+        return convertToDtoList(autoresActivos);
+    }
     private AutorDto beanToDto(AutorBean autorBean) {
         AutorDto autorDto = new AutorDto();
         autorDto.setId(autorBean.getId());
@@ -131,6 +137,7 @@ public class AutorService implements IService<AutorDto> {
         autorBean.setActivo(autorDto.isActivo());
         return autorBean;
     }
+
 
     private List<AutorDto> convertToDtoList(List<AutorBean> autorBeans) {
         return autorBeans.stream().map(this::beanToDto).toList();

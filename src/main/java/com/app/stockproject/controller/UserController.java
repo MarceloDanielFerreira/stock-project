@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         try {
             UserDto userDto = userService.getById(id);
@@ -39,7 +38,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<UserDto>> getAllUsers(@RequestParam(defaultValue = "0") int page) {
         try {
             List<UserDto> userDtoList = userService.getAll(page);
@@ -51,7 +50,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
         try {
             UserDto updatedUser = userService.update(id, userDto);
@@ -67,7 +66,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         try {
             boolean deleted = userService.delete(id);
@@ -79,6 +78,17 @@ public class UserController {
         } catch (Exception e) {
             logger.error("Error deleting user", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/admins")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    public ResponseEntity<List<UserDto>> getAllAdminUsers() {
+        try {
+            List<UserDto> adminUsers = userService.getAllAdminUsers();
+            return ResponseEntity.ok(adminUsers);
+        } catch (Exception e) {
+            logger.error("Error getting all admin users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

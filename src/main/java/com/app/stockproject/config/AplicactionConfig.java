@@ -26,6 +26,7 @@ public class AplicactionConfig {
         return (UserDetailsService) username -> {
             return userDao.findByEmail(username).orElseThrow(()-> new UsernameNotFoundException("User not found"));
         };
+
     }
     @Bean
     public AuthenticationProvider authenticationProvider(){

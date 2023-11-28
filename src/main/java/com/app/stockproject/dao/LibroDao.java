@@ -12,6 +12,9 @@ import java.util.List;
 @Repository
 public interface LibroDao extends JpaRepository<LibroBean, Long> {
     List<LibroBean> findAllByActivoIsTrue(Pageable pageable);
+    List<LibroBean> findAllByActivoIsTrueAndCantidadLessThan(int cantidad);
+    Page<LibroBean> findAllByActivoIsTrueAndAutorNombreIgnoreCaseContaining(String nombreAutor, Pageable pageable);
+
 
 
 }

@@ -16,6 +16,10 @@ public class ErroresController implements ErrorController {
         if (status != null && Integer.valueOf(status.toString()) == HttpStatus.NOT_FOUND.value()) {
             return "404"; // Esto debe coincidir con el nombre de tu plantilla Thymeleaf
         }
+        if (status != null && Integer.valueOf(status.toString()) == HttpStatus.FORBIDDEN.value()) {
+            return "403"; // Esto debe coincidir con el nombre de tu plantilla Thymeleaf
+        }
+
         return "500"; // Esto debe coincidir con el nombre de tu plantilla Thymeleaf
     }
 

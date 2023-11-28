@@ -12,6 +12,7 @@ import com.app.stockproject.utils.Setting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -30,20 +31,24 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class LibroService implements IService<LibroDto> {
+public class LibroService {
     @Autowired
     private LibroDao libroDao;
     @Autowired
     private AutorService autorService;
     @Autowired
     private GeneroLiterarioService generoService;
+    @Autowired
+    private ReportService reportService;
+
+    @Value("${cantidadAlerta}")
+    private int cantidadAlerta;
 
     @Autowired
     private CacheManager cacheManager;
     private final Logger logger = LoggerFactory.getLogger(LibroService.class);
 
     @Transactional(propagation = Propagation.REQUIRED,readOnly = false)
-    @Override
     public LibroDto create(LibroDto libroDto) {
         try {
             LibroBean libroBean = dtoToBean(libroDto);
@@ -57,7 +62,6 @@ public class LibroService implements IService<LibroDto> {
 
     @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     @Cacheable(cacheNames = "sd::api_libros", key = "'libro_'+#id")
-    @Override
     public LibroDto getById(Long id) {
         try {
             Optional<LibroBean> optionalLibro = libroDao.findById(id);
@@ -70,9 +74,20 @@ public class LibroService implements IService<LibroDto> {
             throw e;
         }
     }
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+    public List<LibroDto> getAllLibrosConBajoStock() {
+        try {
+            List<LibroBean> librosConBajoStock = libroDao.findAllByActivoIsTrueAndCantidadLessThan(cantidadAlerta);
+
+            return convertToDtoList(librosConBajoStock);
+        } catch (Exception e) {
+            logger.error("Error al obtener libros con bajo stock", e);
+            throw e;
+        }
+    }
+
 
     @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
-    @Override
     public List<LibroDto> getAll(int page) {
         Pageable pageable = PageRequest.of(page, Setting.PAGE_SIZE);
         List<LibroBean> librosActivos = libroDao.findAllByActivoIsTrue(pageable);
@@ -99,7 +114,7 @@ public class LibroService implements IService<LibroDto> {
 
     @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @CachePut(cacheNames = "sd::api_libros", key = "'libro_'+#id")
-    @Override
+
     public LibroDto update(Long id, LibroDto libroDto) {
         try {
             Optional<LibroBean> optionalLibro = libroDao.findById(id);
@@ -118,7 +133,6 @@ public class LibroService implements IService<LibroDto> {
 
     @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
     @CacheEvict(cacheNames = "sd::api_libros", key = "'libro_'+#id")
-    @Override
     public boolean delete(Long id) {
         try {
             Optional<LibroBean> optionalLibro = libroDao.findById(id);
